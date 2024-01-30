@@ -1,39 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>pokejava API</title>
     <script>
         // JSON endpoint for all Pokemon
-        function getAllPokemon(req, res) {
+        function getAllPokemon(res) {
             fetch('https://pokeapi.co/api/v2/pokemon?limit=1019')
                 .then(response => response.json())
                 .then(data => {
                     const allPokemon = data.results.map(pokemon => {
                         return {
                             name: pokemon.name,
-                            url: window.location.href + '/' + pokemon.name,
+                            url: window.location.href + 'pokemon/' + pokemon.name,
                         };
                     });
                     res.json(allPokemon);
                 })
                 .catch(error => {
-                    res.status(500).json({ error: 'Error fetching Pokemon data' });
+                    res.status(500).json({
+                        error: 'Error fetching Pokemon data'
+                    });
                     console.error('Error fetching Pokemon data:', error);
                 });
         }
 
         // JSON endpoint for a specific Pokemon
-        function getPokemon(req, res) {
-            const pokemonName = req.params.name;
+        function getPokemon(pokemonName, res) {
             fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`)
                 .then(response => response.json())
                 .then(data => {
                     res.json(data);
                 })
                 .catch(error => {
-                    res.status(500).json({ error: 'Error fetching Pokemon data' });
+                    res.status(500).json({
+                        error: 'Error fetching Pokemon data'
+                    });
                     console.error('Error fetching Pokemon data:', error);
                 });
         }
@@ -43,12 +47,6 @@
             const path = window.location.pathname;
             const segments = path.split('/').filter(segment => segment !== '');
 
-            const req = {
-                params: {
-                    name: segments[1],
-                },
-            };
-
             const res = {
                 json: data => {
                     document.body.textContent = JSON.stringify(data, null, 2);
@@ -56,7 +54,9 @@
                 status: code => {
                     return {
                         json: data => {
-                            document.body.textContent = JSON.stringify({ error: data.error }, null, 2);
+                            document.body.textContent = JSON.stringify({
+                                error: data.error
+                            }, null, 2);
                         },
                     };
                 },
@@ -64,11 +64,14 @@
 
             // Route requests based on the path
             if (segments.length === 1) {
-                getAllPokemon(req, res);
-            } else if (segments.length === 2) {
-                getPokemon(req, res);
+                getAllPokemon(res);
+            } else if (segments.length === 2 && segments[1] === 'pokemon') {
+                const pokemonName = segments[2];
+                getPokemon(pokemonName, res);
             } else {
-                res.status(404).json({ error: 'Invalid path' });
+                res.status(404).json({
+                    error: 'Invalid path'
+                });
             }
         }
 
@@ -76,7 +79,9 @@
         document.addEventListener('DOMContentLoaded', handleRequest);
     </script>
 </head>
+
 <body>
     <h1>pokejava API</h1>
 </body>
+
 </html>
