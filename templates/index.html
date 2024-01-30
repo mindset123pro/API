@@ -1,0 +1,35 @@
+<!-- templates/index.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>PokeJava</title>
+</head>
+<body>
+    <h1>Welcome to PokeJava!</h1>
+    <p>Enter a Pokémon ID to get information:</p>
+    <input type="text" id="pokemonIdInput" placeholder="Enter Pokémon ID">
+    <button onclick="getPokemonData()">Get Pokémon Data</button>
+    <div id="pokemonData"></div>
+
+    <script>
+        function getPokemonData() {
+            const pokemonId = document.getElementById('pokemonIdInput').value;
+            fetch(`/pokemon/${pokemonId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('pokemonData').innerHTML = `
+                        <h2>${data.name}</h2>
+                        <p>Height: ${data.height}</p>
+                        <p>Weight: ${data.weight}</p>
+                        <img src="${data.image_url}" alt="${data.name}">
+                    `;
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    </script>
+</body>
+</html>
