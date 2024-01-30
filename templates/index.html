@@ -1,35 +1,82 @@
-<!-- templates/index.html -->
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <title>PokeJava</title>
-</head>
-<body>
-    <h1>Welcome to PokeJava!</h1>
-    <p>Enter a Pokémon ID to get information:</p>
-    <input type="text" id="pokemonIdInput" placeholder="Enter Pokémon ID">
-    <button onclick="getPokemonData()">Get Pokémon Data</button>
-    <div id="pokemonData"></div>
-
+    <title>pokejava API</title>
     <script>
-        function getPokemonData() {
-            const pokemonId = document.getElementById('pokemonIdInput').value;
-            fetch(`/pokemon/${pokemonId}`)
+        // JSON endpoint for all Pokemon
+        function getAllPokemon(req, res) {
+            fetch('https://pokeapi.co/api/v2/pokemon?limit=1019')
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('pokemonData').innerHTML = `
-                        <h2>${data.name}</h2>
-                        <p>Height: ${data.height}</p>
-                        <p>Weight: ${data.weight}</p>
-                        <img src="${data.image_url}" alt="${data.name}">
-                    `;
+                    const allPokemon = data.results.map(pokemon => {
+                        return {
+                            name: pokemon.name,
+                            url: window.location.href + '/' + pokemon.name,
+                        };
+                    });
+                    res.json(allPokemon);
                 })
-                .catch(error => console.error('Error:', error));
+                .catch(error => {
+                    res.status(500).json({ error: 'Error fetching Pokemon data' });
+                    console.error('Error fetching Pokemon data:', error);
+                });
         }
+
+        // JSON endpoint for a specific Pokemon
+        function getPokemon(req, res) {
+            const pokemonName = req.params.name;
+            fetch(`https://pokeapi.co/api/v2/pokemon/${pokemonName}`)
+                .then(response => response.json())
+                .then(data => {
+                    res.json(data);
+                })
+                .catch(error => {
+                    res.status(500).json({ error: 'Error fetching Pokemon data' });
+                    console.error('Error fetching Pokemon data:', error);
+                });
+        }
+
+        // Simple routing based on the URL path
+        function handleRequest() {
+            const path = window.location.pathname;
+            const segments = path.split('/').filter(segment => segment !== '');
+
+            const req = {
+                params: {
+                    name: segments[1],
+                },
+            };
+
+            const res = {
+                json: data => {
+                    document.body.textContent = JSON.stringify(data, null, 2);
+                },
+                status: code => {
+                    return {
+                        json: data => {
+                            document.body.textContent = JSON.stringify({ error: data.error }, null, 2);
+                        },
+                    };
+                },
+            };
+
+            // Route requests based on the path
+            if (segments.length === 1) {
+                getAllPokemon(req, res);
+            } else if (segments.length === 2) {
+                getPokemon(req, res);
+            } else {
+                res.status(404).json({ error: 'Invalid path' });
+            }
+        }
+
+        // Handle the request on DOMContentLoaded
+        document.addEventListener('DOMContentLoaded', handleRequest);
     </script>
+</head>
+<body>
+    <h1>pokejava API</h1>
 </body>
 </html>
